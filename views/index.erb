@@ -4,9 +4,55 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Find Me</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/@imacrayon/alpine-ajax@0.12.7/dist/cdn.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.4/css/bulma.min.css">
+    <script>
+      window.renderLocationMap = function(page) {
+        const mapElement = page.querySelector('[data-location-map]');
+        if (!mapElement || mapElement.dataset.leafletInitialized === 'true' || !window.L) return;
+
+        const latitude = Number.parseFloat(mapElement.dataset.latitude);
+        const longitude = Number.parseFloat(mapElement.dataset.longitude);
+        const accuracy = Number.parseFloat(mapElement.dataset.accuracy);
+        if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return;
+
+        mapElement.dataset.leafletInitialized = 'true';
+
+        const latLng = [latitude, longitude];
+        const map = L.map(mapElement).setView(latLng, 14);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          maxZoom: 19,
+          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        const hasAccuracy = Number.isFinite(accuracy) && accuracy >= 0;
+        const accuracyText = hasAccuracy ? `Accuracy: ±${Math.round(accuracy)} m` : 'Accuracy: unknown';
+
+        L.marker(latLng).addTo(map).bindPopup(`Last known location<br>${accuracyText}`);
+
+        if (hasAccuracy && accuracy > 0) {
+          const accuracyCircle = L.circle(latLng, {
+            radius: accuracy,
+            color: '#3273dc',
+            fillColor: '#3273dc',
+            fillOpacity: 0.15,
+            weight: 2
+          }).addTo(map);
+          map.fitBounds(accuracyCircle.getBounds(), { padding: [24, 24], maxZoom: 17 });
+        }
+
+        const accuracyControl = L.control({ position: 'bottomleft' });
+        accuracyControl.onAdd = function() {
+          const div = L.DomUtil.create('div', 'accuracy-control');
+          div.textContent = accuracyText;
+          return div;
+        };
+        accuracyControl.addTo(map);
+      };
+    </script>
     <style>
       .full-screen {
         width: 100vw;
@@ -25,12 +71,19 @@
       .map-frame {
         width: 100%;
         height: 100%;
-        border: 0;
+      }
+
+      .accuracy-control {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 4px;
+        box-shadow: 0 1px 5px rgba(0, 0, 0, 0.35);
+        font-weight: 600;
+        padding: 0.35rem 0.5rem;
       }
     </style>
   </head>
   <body>
-    <div x-data id="page" class="container full-screen is-flex is-flex-direction-column overflow-hidden">
+    <div x-data x-init="renderLocationMap($el)" id="page" class="container full-screen is-flex is-flex-direction-column overflow-hidden">
       <div class="has-background-grey p-3">
         <div class="is-flex is-align-items-center is-justify-content-space-between is-gap-3">
           <div>
@@ -53,11 +106,15 @@
       </div>
 
       <div class="flex-1 overflow-hidden">
-        <iframe
+        <div
           class="map-frame"
-          title="OpenStreetMap location for <%= @latitude %>, <%= @longitude %>"
-          src="https://www.openstreetmap.org/export/embed.html?bbox=<%= @map_bbox %>&amp;layer=mapnik&amp;marker=<%= @latitude %>,<%= @longitude %>">
-        </iframe>
+          data-location-map
+          data-latitude="<%= @latitude %>"
+          data-longitude="<%= @longitude %>"
+          data-accuracy="<%= @accuracy_meters %>"
+          role="img"
+          aria-label="OpenStreetMap location for <%= @latitude %>, <%= @longitude %>">
+        </div>
       </div>
     </div>
   </body>

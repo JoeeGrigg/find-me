@@ -77,20 +77,20 @@ get '/' do
                         when String
                           battery_value.strip.match?(/\A\d+(?:\.\d+)?\z/) ? battery_value.to_f.round : nil
                         end
+  accuracy_value = device_data["acc"] || device_data["accuracy"]
+  @accuracy_meters = case accuracy_value
+                     when Numeric
+                       accuracy_value >= 0 ? accuracy_value : nil
+                     when String
+                       stripped_accuracy = accuracy_value.strip
+                       stripped_accuracy.match?(/\A\d+(?:\.\d+)?\z/) ? stripped_accuracy.to_f : nil
+                     end
 
   unless @latitude && @longitude
     status 502
     content_type :json
     return JSON.generate(error: "OwnTracks location is missing lat/lon for device: #{device}")
   end
-
-  map_delta = 0.05
-  @map_bbox = [
-    @longitude - map_delta,
-    @latitude - map_delta,
-    @longitude + map_delta,
-    @latitude + map_delta
-  ].map { |coordinate| coordinate.round(6) }.join(',')
 
   erb :index
 end
