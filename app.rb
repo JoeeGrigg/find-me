@@ -92,5 +92,7 @@ get '/' do
     return JSON.generate(error: "OwnTracks location is missing lat/lon for device: #{device}")
   end
 
+  @name = ENV.fetch('FIND_ME_NAME', nil)
+
   erb :index
 end

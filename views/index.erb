@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Find Me</title>
+    <title>Find Me<%= @name ? ": #{@name}" : ""%></title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css">
     <script defer src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/@imacrayon/alpine-ajax@0.12.7/dist/cdn.min.js"></script>
@@ -87,7 +87,7 @@
       <div class="has-background-grey p-3">
         <div class="is-flex is-align-items-center is-justify-content-space-between is-gap-3">
           <div>
-            <h1 class="title mb-1">Find Me</h1>
+            <h1 class="title mb-1">Find Me<%= @name ? ": #{@name}" : ""%></h1>
             <p class="subtitle mb-0 is-flex is-align-items-center is-gap-1" title="Last known battery">
               <svg width="28" height="16" viewBox="0 0 28 16" role="img" aria-label="Battery" xmlns="http://www.w3.org/2000/svg">
                 <rect x="1" y="3" width="22" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="2"/>
