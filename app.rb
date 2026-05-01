@@ -1,8 +1,70 @@
+require 'dotenv'
+
+Dotenv.load(File.join(__dir__, '.env')) if File.file?(File.join(__dir__, '.env'))
+
+require 'http'
+require 'json'
+require 'securerandom'
 require 'sinatra'
 
+OWNTRACKS_TIMEOUT_SECONDS = 5
+
+helpers do
+  def owntracks_url
+    host = ENV.fetch('OWNTRACKS_HOST', '').strip
+    return nil if host.empty?
+
+    base_url = host.match?(%r{\Ahttps?://}) ? host : "https://#{host}"
+    "#{base_url.chomp('/')}/api/0/last"
+  end
+
+  def request_owntracks
+    url = owntracks_url
+    return [nil, 'OWNTRACKS_HOST is not set'] unless url
+
+    username = ENV.fetch('OWNTRACKS_USERNAME', '').strip
+    password = ENV.fetch('OWNTRACKS_PASSWORD', '')
+    return [nil, 'OWNTRACKS_USERNAME is not set'] if username.empty?
+    return [nil, 'OWNTRACKS_PASSWORD is not set'] if password.empty?
+
+    response = HTTP
+      .timeout(connect: OWNTRACKS_TIMEOUT_SECONDS, read: OWNTRACKS_TIMEOUT_SECONDS)
+      .basic_auth(user: username, pass: password)
+      .get(url)
+
+    [response, nil]
+  rescue StandardError => e
+    [nil, "OwnTracks request failed: #{e.class}: #{e.message}"]
+  end
+end
+
 get '/' do
-  @latitude = rand(-85.0..85.0).round(6)
-  @longitude = rand(-180.0..180.0).round(6)
+  response, error = request_owntracks
+
+  unless response
+    status 503
+    content_type :json
+    return JSON.generate(error: error)
+  end
+
+  json_body = JSON.parse(response.body)
+  device = ENV.fetch('OWNTRACKS_DEVICE', '').strip
+  device_data = json_body.find { |x| x["device"] == device }
+
+  unless device_data
+    status 502
+    content_type :json
+    return JSON.generate(error: "OwnTracks device not found: #{device.empty? ? 'OWNTRACKS_DEVICE is not set' : device}")
+  end
+
+  @latitude = device_data["lat"]
+  @longitude = device_data["lon"]
+
+  unless @latitude && @longitude
+    status 502
+    content_type :json
+    return JSON.generate(error: "OwnTracks location is missing lat/lon for device: #{device}")
+  end
 
   map_delta = 0.05
   @map_bbox = [
