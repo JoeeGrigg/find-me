@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Fine Me</title>
+    <script defer src="https://cdn.jsdelivr.net/npm/@imacrayon/alpine-ajax@0.12.7/dist/cdn.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.4/css/bulma.min.css">
+    <style>
+      .full-screen {
+        width: 100vw;
+        height: 100vh;
+        max-width: none;
+      }
+
+      .flex-1 {
+        flex: 1;
+      }
+
+      .overflow-hidden {
+        overflow: hidden;
+      }
+    </style>
+  </head>
+  <body>
+    <div x-data id="page" class="container full-screen is-flex is-flex-direction-column overflow-hidden">
+      <div class="has-background-grey">
+        <h1 class="title">
+          Hello World
+        </h1>
+        <p class="subtitle">
+          My first website with <strong>Bulma</strong>!
+        </p>
+        <form x-target="page" method="GET" action="/">
+          <button type="submit">Refresh</button>
+        </form>
+      </div>
+
+      <div class="has-background-success flex-1">
+        <p>Some content</p>
+      </div>
+    </div>
+  </body>
+</html>
