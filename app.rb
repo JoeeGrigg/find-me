@@ -1,3 +1,4 @@
+require 'digest'
 require 'dotenv'
 
 Dotenv.load(File.join(__dir__, '.env')) if File.file?(File.join(__dir__, '.env'))
@@ -8,6 +9,16 @@ require 'securerandom'
 require 'sinatra'
 
 OWNTRACKS_TIMEOUT_SECONDS = 5
+
+use Rack::Auth::Basic, 'Restricted Area' do |username, password|
+  expected_username = ENV.fetch('BASIC_AUTH_USERNAME', '')
+  expected_password = ENV.fetch('BASIC_AUTH_PASSWORD', '')
+
+  next false if expected_username.empty? || expected_password.empty?
+
+  Rack::Utils.secure_compare(Digest::SHA256.hexdigest(username.to_s), Digest::SHA256.hexdigest(expected_username)) &
+    Rack::Utils.secure_compare(Digest::SHA256.hexdigest(password.to_s), Digest::SHA256.hexdigest(expected_password))
+end
 
 helpers do
   def owntracks_url
