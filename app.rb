@@ -7,6 +7,7 @@ require 'http'
 require 'json'
 require 'securerandom'
 require 'sinatra'
+require 'time'
 
 OWNTRACKS_TIMEOUT_SECONDS = 5
 
@@ -85,6 +86,23 @@ get '/' do
                        stripped_accuracy = accuracy_value.strip
                        stripped_accuracy.match?(/\A\d+(?:\.\d+)?\z/) ? stripped_accuracy.to_f : nil
                      end
+  timestamp_value = device_data["tst"] || device_data["timestamp"] || device_data["created_at"]
+  @location_timestamp = begin
+    case timestamp_value
+    when Numeric
+      Time.at(timestamp_value).utc
+    when String
+      stripped_timestamp = timestamp_value.strip
+      if stripped_timestamp.match?(/\A\d+(?:\.\d+)?\z/)
+        Time.at(stripped_timestamp.to_f).utc
+      elsif !stripped_timestamp.empty?
+        Time.parse(stripped_timestamp).utc
+      end
+    end
+  rescue ArgumentError, RangeError, TypeError
+    nil
+  end
+  @location_timestamp_text = @location_timestamp&.strftime('%Y-%m-%d %H:%M:%S UTC')
 
   unless @latitude && @longitude
     status 502
