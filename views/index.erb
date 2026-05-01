@@ -21,6 +21,12 @@
       .overflow-hidden {
         overflow: hidden;
       }
+
+      .map-frame {
+        width: 100%;
+        height: 100%;
+        border: 0;
+      }
     </style>
   </head>
   <body>
@@ -37,8 +43,12 @@
         </form>
       </div>
 
-      <div class="has-background-success flex-1">
-        <p>Some content</p>
+      <div class="flex-1 overflow-hidden">
+        <iframe
+          class="map-frame"
+          title="OpenStreetMap location for <%= @latitude %>, <%= @longitude %>"
+          src="https://www.openstreetmap.org/export/embed.html?bbox=<%= @map_bbox %>&amp;layer=mapnik&amp;marker=<%= @latitude %>,<%= @longitude %>">
+        </iframe>
       </div>
     </div>
   </body>
