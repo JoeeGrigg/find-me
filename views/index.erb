@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Fine Me</title>
+    <title>Find Me</title>
     <script defer src="https://cdn.jsdelivr.net/npm/@imacrayon/alpine-ajax@0.12.7/dist/cdn.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.4/css/bulma.min.css">
@@ -31,16 +31,25 @@
   </head>
   <body>
     <div x-data id="page" class="container full-screen is-flex is-flex-direction-column overflow-hidden">
-      <div class="has-background-grey">
-        <h1 class="title">
-          Hello World
-        </h1>
-        <p class="subtitle">
-          My first website with <strong>Bulma</strong>!
-        </p>
-        <form x-target="page" method="GET" action="/">
-          <button type="submit">Refresh</button>
-        </form>
+      <div class="has-background-grey p-3">
+        <div class="is-flex is-align-items-center is-justify-content-space-between is-gap-3">
+          <div>
+            <h1 class="title mb-1">Find Me</h1>
+            <p class="subtitle mb-0 is-flex is-align-items-center is-gap-1" title="Last known battery">
+              <svg width="28" height="16" viewBox="0 0 28 16" role="img" aria-label="Battery" xmlns="http://www.w3.org/2000/svg">
+                <rect x="1" y="3" width="22" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="2"/>
+                <rect x="24" y="6" width="3" height="4" rx="1" fill="currentColor"/>
+                <% unless @battery_percentage.nil? %>
+                  <rect x="4" y="6" width="<%= (@battery_percentage.clamp(0, 100) * 16 / 100.0).round(1) %>" height="4" rx="1" fill="currentColor"/>
+                <% end %>
+              </svg>
+              <strong><%= @battery_percentage.nil? ? 'Unknown' : "#{@battery_percentage}%" %></strong>
+            </p>
+          </div>
+          <form x-target="page" method="GET" action="/">
+            <button class="button" type="submit">Refresh</button>
+          </form>
+        </div>
       </div>
 
       <div class="flex-1 overflow-hidden">

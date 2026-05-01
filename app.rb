@@ -70,6 +70,13 @@ get '/' do
 
   @latitude = device_data["lat"]
   @longitude = device_data["lon"]
+  battery_value = device_data["batt"] || device_data["battery"] || device_data["B"]
+  @battery_percentage = case battery_value
+                        when Numeric
+                          battery_value.round
+                        when String
+                          battery_value.strip.match?(/\A\d+(?:\.\d+)?\z/) ? battery_value.to_f.round : nil
+                        end
 
   unless @latitude && @longitude
     status 502
